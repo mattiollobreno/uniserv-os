@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const asyncHandler = require('../middlewares/asyncHandler');
 const AuthRouthes = require('../controllers/authController');
 
 router.post('/cadastrar', asyncHandler(AuthRouthes.cadastrarUsuario));
