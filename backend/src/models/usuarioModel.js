@@ -11,4 +11,13 @@ async function criarUsuario(dados) {
     );
 }
 
-module.exports = criarUsuario;
+//buscar por email
+async function buscarPorEmail(email){
+
+  console.log('buscando Email', email, typeof email);
+    const result = await db.query('SELECT * FROM usuario WHERE email = $1', [email]);
+
+  return result.rows[0] || null;
+}
+
+module.exports = { criarUsuario, buscarPorEmail };
