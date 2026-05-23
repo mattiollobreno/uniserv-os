@@ -112,9 +112,16 @@ async function refresh(req, res) {
     });
 res.status(200).json({ accessToken: novoAccessToken });
 }
+/// gerar o refresh token
+function gerarRefreshToken(usuario) {
+    return jwt.sign(
+    { id: usuario.id },
+    process.env.REFRESH_SECRET, // segredo DIFERENTE do access token
+    { expiresIn: '7d' }
+    );
+}
 
 
 
 
-
-module.exports = {cadastrarUsuario, login};
+module.exports = {cadastrarUsuario, login, refresh};
