@@ -51,4 +51,34 @@ async function buscarPorId(id) {
     );
     return result.rows[0] || null;
 }
-module.exports = { criarUsuario, buscarPorEmail, salvarRefreshToken, buscarRefreshToken, buscarPorId, revogarRefreshToken };
+
+async function listarUsuarios() {
+   const result =  await db.query('SELECT * from usuario');
+    return result.rows;
+}
+async function atualizarUsuario(id, dados) {
+    const result = await db.query(
+        `UPDATE usuario SET nome_completo = $1, telefone = $2, perfil = $3, ativo = $4
+        WHERE id = $5
+        RETURNING *`,
+        [dados.nome_completo, dados.telefone, dados.perfil, dados.ativo, id]
+    );
+    return result.rows[0] || null;
+    // não inclui senha e email por motivos de segurança, sera feito em outra rota
+}
+async function atualizarEmail(id, novoEmail) {
+    const result = await db.query(
+        'UPDATE usuario SET email = $1 WHERE id = $2 RETURNING *',
+        [novoEmail, id]
+    );
+    return result.rows[0] || null;
+}
+
+async function atualizarSenha(id, novaSenhaHash) {
+    const result = await db.query(
+        'UPDATE usuario SET senha_hash = $1 WHERE id = $2 RETURNING *',
+        [novaSenhaHash, id]
+    );
+    return result.rows[0] || null;
+}
+module.exports = { criarUsuario, buscarPorEmail, listarUsuarios, atualizarUsuario, salvarRefreshToken, buscarRefreshToken, buscarPorId, revogarRefreshToken, atualizarEmail,atualizarSenha};
