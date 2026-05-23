@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
+const clienteRoutes = require('./routes/clientesRoutes');
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/auth', authRoutes);
+app.use('/clientes', clienteRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Uniserv OS backend is running' });
