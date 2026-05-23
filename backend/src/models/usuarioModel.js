@@ -20,4 +20,35 @@ async function buscarPorEmail(email){
   return result.rows[0] || null;
 }
 
-module.exports = { criarUsuario, buscarPorEmail };
+
+
+async function salvarRefreshToken(token, idUsuario) {
+    return await db.query(
+        'UPDATE usuario SET refresh_token = $1 WHERE id = $2',
+        [token, idUsuario]
+    );
+}
+
+async function buscarRefreshToken(token) {
+    const result = await db.query(
+        'SELECT * FROM usuario WHERE refresh_token = $1',
+        [token]
+    );
+    return result.rows[0] || null;
+}
+
+async function revogarRefreshToken(idUsuario) {
+    return await db.query(
+        'UPDATE usuario SET refresh_token = NULL WHERE id = $1',
+        [idUsuario]
+    );
+}
+
+async function buscarPorId(id) {
+    const result = await db.query(
+        'SELECT * FROM usuario WHERE id = $1',
+        [id]
+    );
+    return result.rows[0] || null;
+}
+module.exports = { criarUsuario, buscarPorEmail, salvarRefreshToken, buscarRefreshToken, buscarPorId, revogarRefreshToken };

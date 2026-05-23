@@ -56,9 +56,9 @@ async function login(req, res) {
 
     //// Emite o acces Token
     const token = gerarAccessToken(usuario);
-/*
+
     const refreshToken = jwt.sign(
-        { id: usuario.id, role: usuario.role },
+        { id: usuario.id, role: usuario.perfil },
             process.env.REFRESH_SECRET,
             { expiresIn: process.env.REFRESH_EXPIRES_IN || '7d' });
             await usuarioModel.salvarRefreshToken(refreshToken, usuario.id);
@@ -70,9 +70,51 @@ async function login(req, res) {
             maxAge: 7 * 24 * 60 * 60 * 1000,
             path: '/auth/refresh',
             });
-            */
+            
 res.status(200).json({ token });
 }
+
+
+async function refresh(req, res) {
+    const refreshTokenAntigo = req.cookies.refreshToken;
+    if (!refreshTokenAntigo)
+    return res.status(401).json({ erro: 'Refresh token ausente' });
+    // 1. Verificar assinatura e expiração do token
+    let payload;
+    try {
+    payload = jwt.verify(refreshTokenAntigo, process.env.REFRESH_SECRET);
+    } catch {
+    return res.status(401).json({ erro: 'Refresh token inválido ou expirado' });
+    }
+    const tokenNoBanco = await usuarioModel.buscarRefreshToken(refreshTokenAntigo);
+
+    if (!tokenNoBanco) {
+    // Token reutilizado possível roubo: revogar TODOS os tokens do usuário
+    await await usuarioModel.revogarRefreshToken(refreshTokenAntigo);
+    return res.status(403).json({ erro: 'Token reutilizado sessão encerrada' });
+    }
+
+    await usuarioModel.revogarRefreshToken(refreshTokenAntigo);
+    // 4. Buscar o usuário para incluir dados atualizados no novo token
+    const usuario = await usuarioModel.buscarPorId(payload.id);
+    if (!usuario)
+    return res.status(401).json({ erro: 'Usuário não encontrado' });
+    // 5. Emitir novo par de tokens
+    const novoAccessToken = gerarAccessToken(usuario);
+    const novoRefreshToken = gerarRefreshToken(usuario);
+    await usuarioModel.salvarRefreshToken(novoRefreshToken, usuario.id);
+    res.cookie('refreshToken', novoRefreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/auth/refresh',
+    });
+res.status(200).json({ accessToken: novoAccessToken });
+}
+
+
+
 
 
 module.exports = {cadastrarUsuario, login};
