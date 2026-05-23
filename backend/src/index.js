@@ -1,6 +1,7 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
@@ -9,6 +10,8 @@ const port = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+app.use('/auth', authRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Uniserv OS backend is running' });
