@@ -1,11 +1,7 @@
-const pgp = require('pg-promise')();
+const { Pool } = require('pg');
 
-const db = pgp({
-  host: 'localhost',
-  port: 5432,
-  database: 'não sei',
-  user: 'postgres',
-  password: 'não sei ainda',
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
 });
 
 module.exports = db;
