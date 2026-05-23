@@ -120,8 +120,20 @@ function gerarRefreshToken(usuario) {
     { expiresIn: '7d' }
     );
 }
+async function logout(req, res) {
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+    // Revogar no banco para impedir reutilização
+
+    await usuarioModel.revogarRefreshToken(refreshToken);
+
+    }
+    // Limpar o cookie do cliente
+    res.clearCookie('refreshToken', { path: '/auth/refresh' });
+    res.status(204).send();
+}
 
 
 
 
-module.exports = {cadastrarUsuario, login, refresh};
+module.exports = {cadastrarUsuario, login, refresh, logout};
