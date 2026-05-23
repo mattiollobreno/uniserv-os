@@ -1,6 +1,6 @@
 const db = require('../database');
 
-
+// criar usuario usando pg 
 async function criarUsuario(dados) {
     return await db.query(
         `INSERT INTO usuario (nome_completo, email, telefone, senha_hash, perfil, ativo)
