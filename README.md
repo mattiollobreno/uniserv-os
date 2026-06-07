@@ -20,6 +20,30 @@ Sistema web para gerenciamento de ordens de serviço do **Grupo Uniserv**, empre
 
 ---
 
+## 📌 Requisitos Funcionais
+
+| ID | Descrição | Perfil |
+|---|---|---|
+| RF01 | Cadastro de usuários | Todos |
+| RF02 | Login com e-mail e senha | Todos |
+| RF03 | Cadastro de clientes | Administrador, Supervisor |
+| RF04 | Cadastro de equipamentos (PAT) | Técnico, Supervisor |
+| RF05 | Abertura de chamados pelo cliente | Cliente |
+| RF06 | Abertura de chamados internos | Supervisor |
+| RF07 | Classificação de chamados | Supervisor |
+| RF08 | Atribuição de chamados a técnicos | Supervisor |
+| RF09 | Atualização de status do chamado | Técnico, Supervisor |
+| RF10 | Registro de atendimento | Técnico |
+| RF11 | Comunicação interna no chamado | Cliente, Técnico, Supervisor |
+| RF12 | Acompanhamento de chamados | Cliente |
+| RF13 | Consulta e histórico de chamados | Supervisor, Administrador |
+| RF14 | Avaliação de atendimento | Cliente |
+| RF16 | Geração de ordem de serviço (OS) | Sistema |
+| RF17 | Controle de suprimentos | Técnico, Supervisor |
+| RF18 | Notificações automáticas | Todos |
+
+---
+
 ## 🚀 Tecnologias
 
 | Camada | Tecnologia |
@@ -90,30 +114,6 @@ DATABASE_URL=postgresql://usuario:senha@localhost:5432/uniserv_os
 JWT_SECRET=sua_chave_secreta
 PORT=3001
 ```
-
----
-
-## 📌 Requisitos Funcionais
-
-| ID | Descrição | Perfil |
-|---|---|---|
-| RF01 | Cadastro de usuários | Todos |
-| RF02 | Login com e-mail e senha | Todos |
-| RF03 | Cadastro de clientes | Administrador, Supervisor |
-| RF04 | Cadastro de equipamentos (PAT) | Técnico, Supervisor |
-| RF05 | Abertura de chamados pelo cliente | Cliente |
-| RF06 | Abertura de chamados internos | Supervisor |
-| RF07 | Classificação de chamados | Supervisor |
-| RF08 | Atribuição de chamados a técnicos | Supervisor |
-| RF09 | Atualização de status do chamado | Técnico, Supervisor |
-| RF10 | Registro de atendimento | Técnico |
-| RF11 | Comunicação interna no chamado | Cliente, Técnico, Supervisor |
-| RF12 | Acompanhamento de chamados | Cliente |
-| RF13 | Consulta e histórico de chamados | Supervisor, Administrador |
-| RF14 | Avaliação de atendimento | Cliente |
-| RF16 | Geração de ordem de serviço (OS) | Sistema |
-| RF17 | Controle de suprimentos | Técnico, Supervisor |
-| RF18 | Notificações automáticas | Todos |
 
 ---
 
