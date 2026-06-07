@@ -117,6 +117,72 @@ PORT=3001
 
 ---
 
+## Autenticação
+
+O sistema usa JWT com dois tokens:
+
+- **Access token** — enviado no header `Authorization: Bearer <token>`. Curta duração.
+- **Refresh token** — armazenado em cookie `HttpOnly`. Usado para renovar o access token sem novo login.
+
+Perfis de acesso disponíveis: `administrador`, `supervisor`, `tecnico`.
+
+---
+
+## Rotas da API
+
+### Auth — `/auth`
+
+| Método | Rota | Descrição | Acesso |
+|---|---|---|---|
+| POST | `/auth/cadastrar` | Cadastra novo usuário | Pública |
+| POST | `/auth/login` | Login, retorna tokens | Pública |
+| POST | `/auth/refresh` | Renova o access token | Cookie |
+| POST | `/auth/logout` | Encerra sessão | Autenticado |
+
+### Usuários — `/usuarios`
+
+| Método | Rota | Descrição | Perfil |
+|---|---|---|---|
+| GET | `/usuarios` | Lista usuários | Administrador |
+| GET | `/usuarios/:id` | Busca por ID | Autenticado |
+| PUT | `/usuarios/:id` | Atualiza dados | Administrador |
+| PATCH | `/usuarios/:id/email` | Atualiza e-mail | Autenticado |
+| PATCH | `/usuarios/:id/senha` | Atualiza senha | Autenticado |
+| DELETE | `/usuarios/:id` | Remove usuário | Administrador |
+
+### Clientes — `/clientes`
+
+| Método | Rota | Descrição | Perfil |
+|---|---|---|---|
+| POST | `/clientes` | Cadastra cliente | Administrador, Supervisor |
+| GET | `/clientes` | Lista clientes | Administrador, Supervisor |
+| GET | `/clientes/:id` | Busca por ID | Autenticado |
+| PUT | `/clientes/:id` | Atualiza cliente | Administrador, Supervisor |
+| DELETE | `/clientes/:id` | Remove cliente | Administrador |
+
+### Equipamentos — `/equipamentos`
+
+| Método | Rota | Descrição | Perfil |
+|---|---|---|---|
+| POST | `/equipamentos` | Cadastra equipamento (PAT) | Administrador, Supervisor, Técnico |
+| GET | `/equipamentos` | Lista equipamentos | Autenticado |
+| GET | `/equipamentos/:id` | Busca por ID | Autenticado |
+| PUT | `/equipamentos/:id` | Atualiza equipamento | Administrador, Supervisor, Técnico |
+| DELETE | `/equipamentos/:id` | Remove equipamento | Administrador |
+
+### Chamados — `/chamados`
+
+| Método | Rota | Descrição | Perfil |
+|---|---|---|---|
+| POST | `/chamados` | Abre chamado | Administrador, Supervisor |
+| GET | `/chamados` | Lista chamados | Autenticado |
+| GET | `/chamados/:id` | Busca por ID | Autenticado |
+| PATCH | `/chamados/:id/status` | Atualiza status | Administrador, Supervisor, Técnico |
+| PATCH | `/chamados/:id/tecnico` | Atribui técnico | Administrador, Supervisor |
+| DELETE | `/chamados/:id` | Remove chamado | Administrador |
+
+---
+
 ## 📄 Licença
 
 Projeto acadêmico — UFFS Campus Chapecó, 2026.
