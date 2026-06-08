@@ -3,21 +3,21 @@ const equipamentoModel = require('../models/equipamentoModel');
 const STATUS_VALIDOS = ['ativo', 'em_manutencao', 'desinstalado'];
 
 async function criarEquipamento(req, res) {
-    const { numero_patrimonio, modelo, marca, localizacao, status, cliente_id } = req.body;
+    const { pat, modelo, marca, localizacao, status, cliente_id } = req.body;
 
-    if (!numero_patrimonio || !modelo || !marca || !cliente_id) {
-        return res.status(400).json({ erro: 'Campos obrigatórios ausentes: numero_patrimonio, modelo, marca, cliente_id' });
+    if (!pat || !modelo || !marca || !cliente_id) {
+        return res.status(400).json({ erro: 'Campos obrigatórios ausentes: pat, modelo, marca, cliente_id' });
     }
 
     if (status && !STATUS_VALIDOS.includes(status)) {
         return res.status(400).json({ erro: 'Status inválido', validos: STATUS_VALIDOS });
     }
 
-    if (await equipamentoModel.buscarPorPatrimonio(numero_patrimonio)) {
+    if (await equipamentoModel.buscarPorPat(pat)) {
         return res.status(409).json({ erro: 'Número de patrimônio já cadastrado' });
     }
 
-    const equipamento = await equipamentoModel.criarEquipamento({ numero_patrimonio, modelo, marca, localizacao, status, cliente_id });
+    const equipamento = await equipamentoModel.criarEquipamento({ pat, modelo, marca, localizacao, status, cliente_id });
     res.status(201).json(equipamento.rows[0]);
 }
 

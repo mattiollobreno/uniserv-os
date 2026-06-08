@@ -2,18 +2,19 @@ const db = require('../database');
 
 async function criarChamado(dados) {
     return await db.query(
-        `INSERT INTO chamado (titulo, descricao, tipo, status, prioridade, cliente_id, equipamento_id, usuario_id)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        `INSERT INTO chamado (descricao, tipo, status, prioridade, origem, cliente_id, equipamento_id, tecnico_id, supervisor_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING *`,
         [
-            dados.titulo,
             dados.descricao,
             dados.tipo,
             dados.status ?? 'aberto',
-            dados.prioridade ?? 'normal',
+            dados.prioridade ?? 'media',
+            dados.origem ?? 'interno',
             dados.cliente_id,
             dados.equipamento_id ?? null,
-            dados.usuario_id,
+            dados.tecnico_id ?? null,
+            dados.supervisor_id ?? null,
         ]
     );
 }
@@ -23,13 +24,13 @@ async function listarChamados() {
         `SELECT c.*, 
             cl.razao_social AS cliente_nome,
             u.nome_completo AS tecnico_nome,
-            e.numero_patrimonio AS equipamento_pat,
+            e.pat AS equipamento_pat,
             e.modelo AS equipamento_modelo
         FROM chamado c
         LEFT JOIN cliente cl ON cl.id = c.cliente_id
-        LEFT JOIN usuario u ON u.id = c.usuario_id
+        LEFT JOIN usuario u ON u.id = c.tecnico_id
         LEFT JOIN equipamento e ON e.id = c.equipamento_id
-        ORDER BY c.criado_em DESC`
+        ORDER BY c.data_abertura DESC`
     );
     return result.rows;
 }
@@ -39,11 +40,11 @@ async function buscarPorId(id) {
         `SELECT c.*,
             cl.razao_social AS cliente_nome,
             u.nome_completo AS tecnico_nome,
-            e.numero_patrimonio AS equipamento_pat,
+            e.pat AS equipamento_pat,
             e.modelo AS equipamento_modelo
         FROM chamado c
         LEFT JOIN cliente cl ON cl.id = c.cliente_id
-        LEFT JOIN usuario u ON u.id = c.usuario_id
+        LEFT JOIN usuario u ON u.id = c.tecnico_id
         LEFT JOIN equipamento e ON e.id = c.equipamento_id
         WHERE c.id = $1`,
         [id]
@@ -53,7 +54,7 @@ async function buscarPorId(id) {
 
 async function atualizarStatus(id, status) {
     const result = await db.query(
-        `UPDATE chamado SET status = $1, atualizado_em = NOW()
+        `UPDATE chamado SET status = $1
         WHERE id = $2
         RETURNING *`,
         [status, id]
@@ -61,12 +62,12 @@ async function atualizarStatus(id, status) {
     return result.rows[0] || null;
 }
 
-async function atribuirTecnico(id, usuario_id) {
+async function atribuirTecnico(id, tecnico_id) {
     const result = await db.query(
-        `UPDATE chamado SET usuario_id = $1, atualizado_em = NOW()
+        `UPDATE chamado SET tecnico_id = $1
         WHERE id = $2
         RETURNING *`,
-        [usuario_id, id]
+        [tecnico_id, id]
     );
     return result.rows[0] || null;
 }

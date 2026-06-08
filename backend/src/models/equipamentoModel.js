@@ -2,16 +2,16 @@ const db = require('../database');
 
 async function criarEquipamento(dados) {
     return await db.query(
-        `INSERT INTO equipamento (numero_patrimonio, modelo, marca, localizacao, status, cliente_id)
+        `INSERT INTO equipamento (pat, modelo, marca, localizacao, status, cliente_id)
         VALUES ($1, $2, $3, $4, $5, $6)
         RETURNING *`,
         [dados.numero_patrimonio, dados.modelo, dados.marca, dados.localizacao, dados.status ?? 'ativo', dados.cliente_id]
     );
 }
 
-async function buscarPorPatrimonio(numero_patrimonio) {
+async function buscarPorPat(numero_patrimonio) {
     const result = await db.query(
-        'SELECT * FROM equipamento WHERE numero_patrimonio = $1',
+        'SELECT * FROM equipamento WHERE pat = $1',
         [numero_patrimonio]
     );
     return result.rows[0] || null;
@@ -57,4 +57,4 @@ async function deletarEquipamento(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { criarEquipamento, buscarPorPatrimonio, buscarPorId, listarEquipamentos, atualizarEquipamento, deletarEquipamento };
+module.exports = { criarEquipamento, buscarPorPat, buscarPorId, listarEquipamentos, atualizarEquipamento, deletarEquipamento };
