@@ -11,5 +11,6 @@ router.get('/:id', autenticar, asyncHandler(usuarioController.buscarUsuario));
 router.put('/:id', autenticar, autorizar('administrador'), asyncHandler(usuarioController.atualizarUsuario));
 router.patch('/:id/email', autenticar, asyncHandler(usuarioController.atualizarEmail));
 router.patch('/:id/senha', autenticar, asyncHandler(usuarioController.atualizarSenha));
+router.delete('/:id', autenticar, autorizar('administrador'), asyncHandler(usuarioController.deletarUsuario));
 
 module.exports = router;

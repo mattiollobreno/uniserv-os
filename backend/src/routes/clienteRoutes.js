@@ -9,5 +9,6 @@ router.post('/', autenticar, autorizar('administrador', 'supervisor'), asyncHand
 router.get('/', autenticar, autorizar('administrador', 'supervisor'), asyncHandler(clienteController.listarClientes));
 router.get('/:id', autenticar, asyncHandler(clienteController.buscarCliente));
 router.put('/:id', autenticar, autorizar('administrador', 'supervisor'), asyncHandler(clienteController.atualizarCliente));
+router.delete('/:id', autenticar, autorizar('administrador'), asyncHandler(clienteController.deletarCliente));
 
 module.exports = router;

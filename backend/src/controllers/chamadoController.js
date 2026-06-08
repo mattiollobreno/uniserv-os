@@ -1,22 +1,16 @@
 const chamadoModel = require('../models/chamadoModel');
 
-const STATUS_VALIDOS = ['aberto', 'em_andamento', 'finalizado', 'cancelado'];
-const TIPOS_VALIDOS = ['instalacao', 'manutencao', 'desinstalacao'];
+const STATUS_VALIDOS = ['aberto', 'em_andamento', 'aguardando', 'resolvido', 'fechado'];
 
 async function criarChamado(req, res) {
-    const { descricao, tipo, prioridade, origem, cliente_id, equipamento_id, tecnico_id, supervisor_id } = req.body;
+    const { titulo, descricao, tipo, prioridade, cliente_id, equipamento_id } = req.body;
+    const usuario_id = req.usuario.id;
 
-    if (!descricao || !tipo || !cliente_id) {
-        return res.status(400).json({ erro: 'Campos obrigatórios ausentes: descricao, tipo, cliente_id' });
+    if (!titulo || !descricao || !tipo || !cliente_id) {
+        return res.status(400).json({ erro: 'Campos obrigatórios ausentes: titulo, descricao, tipo, cliente_id' });
     }
 
-    if (!TIPOS_VALIDOS.includes(tipo)) {
-        return res.status(400).json({ erro: 'Tipo inválido', validos: TIPOS_VALIDOS });
-    }
-
-    const chamado = await chamadoModel.criarChamado({
-        descricao, tipo, prioridade, origem, cliente_id, equipamento_id, tecnico_id, supervisor_id
-    });
+    const chamado = await chamadoModel.criarChamado({ titulo, descricao, tipo, prioridade, cliente_id, equipamento_id, usuario_id });
     res.status(201).json(chamado.rows[0]);
 }
 
@@ -51,13 +45,13 @@ async function atualizarStatus(req, res) {
 
 async function atribuirTecnico(req, res) {
     const { id } = req.params;
-    const { tecnico_id } = req.body;
+    const { usuario_id } = req.body;
 
-    if (!tecnico_id) {
-        return res.status(400).json({ erro: 'tecnico_id é obrigatório' });
+    if (!usuario_id) {
+        return res.status(400).json({ erro: 'usuario_id é obrigatório' });
     }
 
-    const chamado = await chamadoModel.atribuirTecnico(id, tecnico_id);
+    const chamado = await chamadoModel.atribuirTecnico(id, usuario_id);
     if (!chamado) {
         return res.status(404).json({ erro: 'Chamado não encontrado' });
     }
