@@ -2,21 +2,22 @@ const clienteModel = require('../models/clienteModel')
 /// CRUD
 async function cadastrarCliente(req, res) {
     const { razao_social, cpf_cnpj, telefone, email, endereco, contato_nome} = req.body;
-    const usuario_id = req.usuario.id;
-    if (!razao_social || !email || !telefone || !endereco || !contato_nome || !usuario_id){
+    if (!razao_social || !cpf_cnpj || !email || !telefone || !endereco || !contato_nome){
         return res.status(400).json({ erro: 'Campos obrigatórios ausentes' });
     }
     if (await clienteModel.buscarPorCpfCnpj(cpf_cnpj)){
-            return res.status(409).json({ erro: 'E-mail já cadastrado' });
+            return res.status(409).json({ erro: 'CPF/CNPJ já cadastrado' });
     }
-    const cliente = await clienteModel.criarCliente({ 
+    // usuario_id fica nulo até um usuário do tipo "cliente" se cadastrar e
+    // vincular a este registro (RF01). Não deve ser preenchido com o id de
+    // quem está cadastrando (administrador/supervisor).
+    const cliente = await clienteModel.criarCliente({
             razao_social,
             cpf_cnpj,
             telefone,
             email,
             endereco,
             contato_nome,
-            usuario_id
         });
         res.status(201).json({ id: cliente.rows[0].id, razao_social: cliente.rows[0].razao_social, email: cliente.rows[0].email });
 }

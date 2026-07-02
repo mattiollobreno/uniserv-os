@@ -8,6 +8,7 @@ const userRoutes = require('./routes/userRoutes');
 const clienteRoutes = require('./routes/clienteRoutes');
 const chamadoRoutes = require('./routes/chamadoRoutes');
 const equipamentoRoutes = require('./routes/equipamentoRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use('/usuarios', userRoutes);
 app.use('/clientes', clienteRoutes);
 app.use('/chamados', chamadoRoutes);
 app.use('/equipamentos', equipamentoRoutes);
+app.use('/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Uniserv OS backend is running' });

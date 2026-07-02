@@ -15,6 +15,19 @@ async function buscarPorEmail(email) {
 }
 
 async function buscarPorId(id) {
+    // senha_hash excluída por segurança — este resultado pode ser exposto
+    // via GET /usuarios/:id. Para fluxos internos que precisam do hash
+    // (ex.: troca de senha), use buscarPorIdComSenha.
+    const result = await db.query(
+        'SELECT id, nome_completo, email, telefone, perfil, ativo FROM usuario WHERE id = $1',
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
+// Uso interno apenas (ex.: validar senha atual antes de trocar). Nunca
+// repassar o retorno desta função direto numa resposta HTTP.
+async function buscarPorIdComSenha(id) {
     const result = await db.query(
         'SELECT id, nome_completo, email, telefone, perfil, ativo, senha_hash FROM usuario WHERE id = $1',
         [id]
@@ -83,6 +96,7 @@ module.exports = {
     criarUsuario,
     buscarPorEmail,
     buscarPorId,
+    buscarPorIdComSenha,
     listarUsuarios,
     atualizarUsuario,
     atualizarEmail,

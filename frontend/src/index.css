@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -5,14 +9,388 @@ body {
   color: #111827;
 }
 
-main {
-  padding: 2rem;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
 code {
   background: rgba(55, 65, 81, 0.07);
   padding: 0.25rem 0.4rem;
   border-radius: 0.35rem;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.55rem 1rem;
+  background: #2563eb;
+  color: #fff;
+  transition: background 0.15s ease;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  background: #93a3b8;
+  cursor: not-allowed;
+}
+
+button.secundario {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+button.secundario:hover {
+  background: #d1d5db;
+}
+
+button.perigo {
+  background: #dc2626;
+}
+
+button.perigo:hover {
+  background: #b91c1c;
+}
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.4rem;
+  width: 100%;
+}
+
+label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 0.75rem;
+  display: block;
+}
+
+.mensagem-erro {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+
+.mensagem-sucesso {
+  background: #dcfce7;
+  color: #166534;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+
+/* ---------- Login ---------- */
+
+.pagina-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.cartao-login {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 360px;
+}
+
+.cartao-login h1 {
+  margin-bottom: 0.25rem;
+}
+
+.cartao-login p {
+  color: #6b7280;
+  margin-top: 0;
+}
+
+.cartao-login button {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+
+/* ---------- Layout principal ---------- */
+
+.app-header {
+  background: #111827;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.app-header h1 {
+  font-size: 1.1rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.app-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.app-nav button {
+  background: transparent;
+  color: #d1d5db;
+}
+
+.app-nav button.ativo,
+.app-nav button:hover {
+  background: #1f2937;
+  color: #fff;
+}
+
+.app-usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #d1d5db;
+}
+
+.app-main {
+  padding: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ---------- Dashboard ---------- */
+
+.cartoes-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.cartao-resumo {
+  background: #fff;
+  border-radius: 0.6rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.cartao-resumo h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.cartao-resumo-total {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cartao-resumo-detalhe {
+  margin: 0.15rem 0 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.secao-status {
+  background: #fff;
+  border-radius: 0.6rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.lista-status {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lista-status li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.lista-status li:last-child {
+  border-bottom: none;
+}
+
+.lista-status-vazia {
+  color: #6b7280;
+  justify-content: flex-start !important;
+}
+
+/* ---------- Listagens (Clientes, Chamados) ---------- */
+
+.cabecalho-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.barra-filtros {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.barra-filtros input,
+.barra-filtros select {
+  width: auto;
+  min-width: 160px;
+}
+
+.tabela-wrapper {
+  background: #fff;
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid #f3f4f6;
+  white-space: nowrap;
+}
+
+th {
+  background: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+th.ordenavel:hover {
+  background: #f3f4f6;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+.acoes-tabela {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.acoes-tabela button {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-aberto {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-em_andamento {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-finalizado {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-cancelado {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ---------- Modal / formulário ---------- */
+
+.sobreposicao-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.cartao-modal {
+  background: #fff;
+  border-radius: 0.6rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 480px;
+}
+
+.cartao-modal h2 {
+  margin-top: 0;
+}
+
+.acoes-formulario {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+/* ---------- Responsividade ---------- */
+
+@media (max-width: 640px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .app-usuario {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+
+  .cabecalho-pagina {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  th,
+  td {
+    white-space: normal;
+  }
 }

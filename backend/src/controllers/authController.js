@@ -71,7 +71,7 @@ async function login(req, res) {
             path: '/auth/refresh',
             });
             
-res.status(200).json({ token });
+res.status(200).json({ accessToken: token });
 }
 
 

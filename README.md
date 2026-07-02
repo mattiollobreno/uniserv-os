@@ -176,10 +176,16 @@ Perfis de acesso disponíveis: `administrador`, `supervisor`, `tecnico`.
 |---|---|---|---|
 | POST | `/chamados` | Abre chamado | Administrador, Supervisor |
 | GET | `/chamados` | Lista chamados | Autenticado |
-| GET | `/chamados/:id` | Busca por ID | Autenticado |
-| PATCH | `/chamados/:id/status` | Atualiza status | Administrador, Supervisor, Técnico |
+| GET | `/chamados/:id` | Busca por ID (inclui histórico de status) | Autenticado |
+| PATCH | `/chamados/:id/status` | Atualiza status (registra em historico_status) | Administrador, Supervisor, Técnico |
 | PATCH | `/chamados/:id/tecnico` | Atribui técnico | Administrador, Supervisor |
 | DELETE | `/chamados/:id` | Remove chamado | Administrador |
+
+### Dashboard — `/dashboard`
+
+| Método | Rota | Descrição | Perfil |
+|---|---|---|---|
+| GET | `/dashboard` | Totais de usuários, clientes, equipamentos e chamados (por status) | Autenticado |
 
 ---
 

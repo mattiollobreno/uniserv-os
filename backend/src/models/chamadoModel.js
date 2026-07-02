@@ -52,14 +52,49 @@ async function buscarPorId(id) {
     return result.rows[0] || null;
 }
 
-async function atualizarStatus(id, status) {
+// Atualiza o status do chamado e registra a alteração em historico_status
+// (RF09) na mesma transação, para nunca ficar um sem o outro.
+async function atualizarStatus(id, status, alteradoPor, observacao) {
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
+
+        const result = await client.query(
+            `UPDATE chamado SET status = $1
+            WHERE id = $2
+            RETURNING *`,
+            [status, id]
+        );
+        const chamado = result.rows[0] || null;
+
+        if (chamado) {
+            await client.query(
+                `INSERT INTO historico_status (chamado_id, status, alterado_por, observacao)
+                VALUES ($1, $2, $3, $4)`,
+                [id, status, alteradoPor ?? null, observacao ?? null]
+            );
+        }
+
+        await client.query('COMMIT');
+        return chamado;
+    } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+    } finally {
+        client.release();
+    }
+}
+
+async function listarHistoricoStatus(chamado_id) {
     const result = await db.query(
-        `UPDATE chamado SET status = $1
-        WHERE id = $2
-        RETURNING *`,
-        [status, id]
+        `SELECT hs.*, u.nome_completo AS alterado_por_nome
+        FROM historico_status hs
+        LEFT JOIN usuario u ON u.id = hs.alterado_por
+        WHERE hs.chamado_id = $1
+        ORDER BY hs.data_alteracao ASC`,
+        [chamado_id]
     );
-    return result.rows[0] || null;
+    return result.rows;
 }
 
 async function atribuirTecnico(id, tecnico_id) {
@@ -80,4 +115,4 @@ async function deletarChamado(id) {
     return result.rows[0] || null;
 }
 
-module.exports = { criarChamado, listarChamados, buscarPorId, atualizarStatus, atribuirTecnico, deletarChamado };
+module.exports = { criarChamado, listarChamados, buscarPorId, atualizarStatus, listarHistoricoStatus, atribuirTecnico, deletarChamado };

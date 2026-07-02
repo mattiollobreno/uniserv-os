@@ -38,7 +38,7 @@ async function atualizarSenha(req, res) {
     if (!senhaAtual || !novaSenha)
         return res.status(400).json({ erro: 'Campos obrigatórios ausentes' });
 
-    const usuario = await usuarioModel.buscarPorId(id);
+    const usuario = await usuarioModel.buscarPorIdComSenha(id);
     if (!usuario)
         return res.status(404).json({ erro: 'Usuário não encontrado' });
 
