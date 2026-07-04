@@ -336,6 +336,21 @@ tbody tr:hover {
   color: #991b1b;
 }
 
+.badge-equip-ativo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-equip-em_manutencao {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-equip-desinstalado {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
 /* ---------- Modal / formulário ---------- */
 
 .sobreposicao-modal {

@@ -28,12 +28,18 @@ async function buscarPorId(id) {
     return result.rows[0] || null;
 }
 
-async function listarEquipamentos() {
+// clienteId opcional: usado para o perfil "cliente" ver só os próprios
+// equipamentos (filtro aplicado no controller, nunca em dado vindo do
+// próprio cliente).
+async function listarEquipamentos(clienteId) {
+    const condicaoCliente = clienteId ? 'WHERE e.cliente_id = $1' : '';
     const result = await db.query(
         `SELECT e.*, c.razao_social AS cliente_nome
         FROM equipamento e
         LEFT JOIN cliente c ON c.id = e.cliente_id
-        ORDER BY e.pat ASC`
+        ${condicaoCliente}
+        ORDER BY e.pat ASC`,
+        clienteId ? [clienteId] : []
     );
     return result.rows;
 }

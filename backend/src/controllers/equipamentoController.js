@@ -1,4 +1,5 @@
 const equipamentoModel = require('../models/equipamentoModel');
+const clienteModel = require('../models/clienteModel');
 
 const STATUS_VALIDOS = ['ativo', 'em_manutencao', 'desinstalado'];
 
@@ -22,7 +23,18 @@ async function criarEquipamento(req, res) {
 }
 
 async function listarEquipamentos(req, res) {
-    const equipamentos = await equipamentoModel.listarEquipamentos();
+    let clienteId;
+
+    if (req.usuario.role === 'cliente') {
+        // Cliente só vê os próprios equipamentos.
+        const cliente = await clienteModel.buscarPorUsuarioId(req.usuario.id);
+        if (!cliente) {
+            return res.status(409).json({ erro: 'Seu usuário ainda não está vinculado a um cliente' });
+        }
+        clienteId = cliente.id;
+    }
+
+    const equipamentos = await equipamentoModel.listarEquipamentos(clienteId);
     res.status(200).json(equipamentos);
 }
 

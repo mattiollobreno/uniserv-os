@@ -34,6 +34,12 @@ export default function Clientes({ usuario }) {
   const [salvando, setSalvando] = useState(false);
 
   const podeExcluir = usuario.role === 'administrador';
+  const podeCriarAcesso = usuario.role === 'administrador' || usuario.role === 'supervisor';
+
+  const [clienteAcesso, setClienteAcesso] = useState(null);
+  const [formAcesso, setFormAcesso] = useState({ email: '', senha: '' });
+  const [erroAcesso, setErroAcesso] = useState('');
+  const [salvandoAcesso, setSalvandoAcesso] = useState(false);
 
   useEffect(() => {
     carregarClientes();
@@ -127,6 +133,50 @@ export default function Clientes({ usuario }) {
     }
   }
 
+  function abrirCriarAcesso(cliente) {
+    setClienteAcesso(cliente);
+    setFormAcesso({ email: cliente.email ?? '', senha: '' });
+    setErroAcesso('');
+  }
+
+  function fecharModalAcesso() {
+    setClienteAcesso(null);
+  }
+
+  async function handleSalvarAcesso(evento) {
+    evento.preventDefault();
+    setErroAcesso('');
+
+    if (!formAcesso.email || !formAcesso.senha) {
+      setErroAcesso('Preencha e-mail e senha.');
+      return;
+    }
+    if (formAcesso.senha.length < 6) {
+      setErroAcesso('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    setSalvandoAcesso(true);
+    try {
+      await apiFetch('/auth/cadastrar', {
+        method: 'POST',
+        body: {
+          nome_completo: clienteAcesso.contato_nome || clienteAcesso.razao_social,
+          email: formAcesso.email,
+          senha: formAcesso.senha,
+          perfil: 'cliente',
+          cliente_id: clienteAcesso.id,
+        },
+      });
+      setClienteAcesso(null);
+      await carregarClientes();
+    } catch (err) {
+      setErroAcesso(err.dados?.erro || 'Não foi possível criar o acesso.');
+    } finally {
+      setSalvandoAcesso(false);
+    }
+  }
+
   async function handleExcluir(cliente) {
     if (!window.confirm(`Remover o cliente "${cliente.razao_social}"?`)) return;
     try {
@@ -173,6 +223,7 @@ export default function Clientes({ usuario }) {
                 <th>Telefone</th>
                 <th>E-mail</th>
                 <th>Contato</th>
+                <th>Acesso</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -184,6 +235,17 @@ export default function Clientes({ usuario }) {
                   <td>{cliente.telefone}</td>
                   <td>{cliente.email}</td>
                   <td>{cliente.contato_nome}</td>
+                  <td>
+                    {cliente.usuario_id ? (
+                      <span className="badge badge-equip-ativo">Vinculado</span>
+                    ) : podeCriarAcesso ? (
+                      <button type="button" className="secundario" onClick={() => abrirCriarAcesso(cliente)}>
+                        Criar acesso
+                      </button>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td>
                     <div className="acoes-tabela">
                       <button type="button" className="secundario" onClick={() => abrirEdicao(cliente)}>
@@ -200,7 +262,7 @@ export default function Clientes({ usuario }) {
               ))}
               {clientesVisiveis.length === 0 && (
                 <tr>
-                  <td colSpan={6}>Nenhum cliente encontrado.</td>
+                  <td colSpan={7}>Nenhum cliente encontrado.</td>
                 </tr>
               )}
             </tbody>
@@ -209,10 +271,9 @@ export default function Clientes({ usuario }) {
       )}
 
       {modalAberto && (
-        <div className="sobreposicao-modal" onClick={fecharModal}>
+        <div className="sobreposicao-modal">
           <form
             className="cartao-modal"
-            onClick={(evento) => evento.stopPropagation()}
             onSubmit={handleSalvar}
           >
             <h2>{clienteEditando ? 'Editar cliente' : 'Novo cliente'}</h2>
@@ -239,6 +300,48 @@ export default function Clientes({ usuario }) {
                 {salvando ? 'Salvando...' : 'Salvar'}
               </button>
               <button type="button" className="secundario" onClick={fecharModal}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {clienteAcesso && (
+        <div className="sobreposicao-modal">
+          <form className="cartao-modal" onSubmit={handleSalvarAcesso}>
+            <h2>Criar acesso — {clienteAcesso.razao_social}</h2>
+            <p>
+              O cliente poderá logar com este e-mail e senha para abrir chamados,
+              acompanhar o andamento e avaliar o atendimento.
+            </p>
+
+            <label htmlFor="acessoEmail">E-mail de login</label>
+            <input
+              id="acessoEmail"
+              type="email"
+              value={formAcesso.email}
+              onChange={(evento) => setFormAcesso((atual) => ({ ...atual, email: evento.target.value }))}
+              required
+            />
+
+            <label htmlFor="acessoSenha">Senha</label>
+            <input
+              id="acessoSenha"
+              type="password"
+              value={formAcesso.senha}
+              onChange={(evento) => setFormAcesso((atual) => ({ ...atual, senha: evento.target.value }))}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+
+            {erroAcesso && <p className="mensagem-erro" role="alert">{erroAcesso}</p>}
+
+            <div className="acoes-formulario">
+              <button type="submit" disabled={salvandoAcesso}>
+                {salvandoAcesso ? 'Criando...' : 'Criar acesso'}
+              </button>
+              <button type="button" className="secundario" onClick={fecharModalAcesso}>
                 Cancelar
               </button>
             </div>

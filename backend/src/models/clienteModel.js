@@ -20,6 +20,23 @@ async function buscarPorId(id) {
     return result.rows[0] || null;
 }
 
+// Usado para resolver "qual cliente é esse usuário logado" quando o perfil
+// é 'cliente' (abertura/listagem de chamados e equipamentos restrita ao
+// próprio cliente).
+async function buscarPorUsuarioId(usuarioId) {
+    const result = await db.query('SELECT * FROM cliente WHERE usuario_id = $1', [usuarioId]);
+    return result.rows[0] || null;
+}
+
+// RF01: vincula um usuário do tipo "cliente" a um cliente já cadastrado.
+async function vincularUsuario(clienteId, usuarioId) {
+    const result = await db.query(
+        'UPDATE cliente SET usuario_id = $1 WHERE id = $2 RETURNING *',
+        [usuarioId, clienteId]
+    );
+    return result.rows[0] || null;
+}
+
 async function listarClientes() {
     const result = await db.query('SELECT * FROM cliente');
     return result.rows;
@@ -34,7 +51,16 @@ async function atualizarCliente(id, dados) {
     );
 }
 
-module.exports = { criarCliente, buscarPorCpfCnpj, buscarPorId, listarClientes, atualizarCliente, deletarCliente };
+module.exports = {
+    criarCliente,
+    buscarPorCpfCnpj,
+    buscarPorId,
+    buscarPorUsuarioId,
+    vincularUsuario,
+    listarClientes,
+    atualizarCliente,
+    deletarCliente,
+};
 
 async function deletarCliente(id) {
     const result = await db.query(

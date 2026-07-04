@@ -5,7 +5,8 @@ function autorizar(...papeis) {
     return res.status(401).json({ erro: 'Não autenticado' });
     if (!papeis.includes(req.usuario.role))
     return res.status(403).json({
-    erro: 'Permissão insuficiente',  necessario: papeis,
+    erro: 'Permissão insuficiente',
+    necessario: papeis,
     atual: req.usuario.role,
     });
     next();
