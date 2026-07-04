@@ -60,6 +60,8 @@ Sistema web para gerenciamento de ordens de serviço do **Grupo Uniserv**, empre
 ```
 uniserv-os/
 ├── backend/          # API REST (Node.js + Express)
+│   ├── database/
+│   │   └── schema.sql    # script de criação das tabelas
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── models/
@@ -86,12 +88,23 @@ uniserv-os/
 - PostgreSQL 15+
 - npm ou yarn
 
+### Banco de Dados
+
+1. Crie um banco PostgreSQL (ex.: `uniserv_os`).
+2. Execute o script `backend/database/schema.sql` nesse banco — ele cria todas as tabelas e chaves estrangeiras. Pode ser pelo `psql`:
+
+```bash
+psql -U seu_usuario -d uniserv_os -f backend/database/schema.sql
+```
+
+Ou abrindo o arquivo no pgAdmin/Query Tool e executando.
+
 ### Backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env   # configure as variáveis de ambiente
+cp .env.example .env   # configure DATABASE_URL com o usuário/senha do seu Postgres
 npm run dev
 ```
 
@@ -100,7 +113,7 @@ npm run dev
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 ---
@@ -112,6 +125,8 @@ Crie um arquivo `.env` dentro de `backend/` com base no `.env.example`:
 ```env
 DATABASE_URL=postgresql://usuario:senha@localhost:5432/uniserv_os
 JWT_SECRET=sua_chave_secreta
+REFRESH_SECRET=sua_chave_refresh_secreta
+REFRESH_EXPIRES_IN=7d
 PORT=3001
 ```
 
@@ -143,7 +158,7 @@ Perfis de acesso disponíveis: `administrador`, `supervisor`, `tecnico`.
 
 | Método | Rota | Descrição | Perfil |
 |---|---|---|---|
-| GET | `/usuarios` | Lista usuários | Administrador |
+| GET | `/usuarios` | Lista usuários | Administrador, Supervisor |
 | GET | `/usuarios/:id` | Busca por ID | Autenticado |
 | PUT | `/usuarios/:id` | Atualiza dados | Administrador |
 | PATCH | `/usuarios/:id/email` | Atualiza e-mail | Autenticado |
@@ -155,7 +170,7 @@ Perfis de acesso disponíveis: `administrador`, `supervisor`, `tecnico`.
 | Método | Rota | Descrição | Perfil |
 |---|---|---|---|
 | POST | `/clientes` | Cadastra cliente | Administrador, Supervisor |
-| GET | `/clientes` | Lista clientes | Administrador, Supervisor |
+| GET | `/clientes` | Lista clientes | Administrador, Supervisor, Técnico |
 | GET | `/clientes/:id` | Busca por ID | Autenticado |
 | PUT | `/clientes/:id` | Atualiza cliente | Administrador, Supervisor |
 | DELETE | `/clientes/:id` | Remove cliente | Administrador |

@@ -90,7 +90,7 @@ async function refresh(req, res) {
 
     if (!tokenNoBanco) {
     // Token reutilizado possível roubo: revogar TODOS os tokens do usuário
-    await await usuarioModel.revogarRefreshToken(refreshTokenAntigo);
+    await usuarioModel.revogarRefreshToken(refreshTokenAntigo);
     return res.status(403).json({ erro: 'Token reutilizado sessão encerrada' });
     }
 

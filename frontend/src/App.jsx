@@ -1,22 +1,28 @@
 import { useEffect, useState } from 'react';
 import Login from './pages/Login';
+import Cadastro from './pages/Cadastro';
 import Dashboard from './pages/Dashboard';
 import Clientes from './pages/Clientes';
+import Chamados from './pages/Chamados';
+import Equipamentos from './pages/Equipamentos';
 import { logout as logoutServico, tentarSessaoExistente } from './services/auth';
 
-// Navegação simples por estado — com só 4 telas não compensa adicionar uma
+// Navegação simples por estado — com só 5 telas não compensa adicionar uma
 // biblioteca de rotas (react-router) só pra isso.
 // `perfis` espelha a autorização já aplicada nas rotas do backend: se o
 // perfil não tem acesso ao endpoint, a aba nem aparece.
 const PAGINAS = {
   dashboard: { titulo: 'Dashboard', Componente: Dashboard, perfis: null },
   clientes: { titulo: 'Clientes', Componente: Clientes, perfis: ['administrador', 'supervisor'] },
+  chamados: { titulo: 'Chamados', Componente: Chamados, perfis: null },
+  equipamentos: { titulo: 'Equipamentos', Componente: Equipamentos, perfis: null },
 };
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [carregandoSessao, setCarregandoSessao] = useState(true);
   const [pagina, setPagina] = useState('dashboard');
+  const [telaPublica, setTelaPublica] = useState('login');
 
   useEffect(() => {
     tentarSessaoExistente().then((usuarioLogado) => {
@@ -36,7 +42,11 @@ export default function App() {
   }
 
   if (!usuario) {
-    return <Login onLogin={setUsuario} />;
+    return telaPublica === 'cadastro' ? (
+      <Cadastro onVoltarLogin={() => setTelaPublica('login')} />
+    ) : (
+      <Login onLogin={setUsuario} onIrParaCadastro={() => setTelaPublica('cadastro')} />
+    );
   }
 
   const paginasVisiveis = Object.entries(PAGINAS).filter(
