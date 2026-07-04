@@ -92,6 +92,14 @@ async function revogarRefreshToken(token) {
     );
 }
 
+async function deletarUsuario(id) {
+    const result = await db.query(
+        'DELETE FROM usuario WHERE id = $1 RETURNING id',
+        [id]
+    );
+    return result.rows[0] || null;
+}
+
 module.exports = {
     criarUsuario,
     buscarPorEmail,
@@ -104,12 +112,5 @@ module.exports = {
     salvarRefreshToken,
     buscarRefreshToken,
     revogarRefreshToken,
+    deletarUsuario,
 };
-
-async function deletarUsuario(id) {
-    const result = await db.query(
-        'DELETE FROM usuario WHERE id = $1 RETURNING id',
-        [id]
-    );
-    return result.rows[0] || null;
-}

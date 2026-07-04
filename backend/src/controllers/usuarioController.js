@@ -52,7 +52,6 @@ async function atualizarSenha(req, res) {
     res.status(200).json({ mensagem: 'Senha atualizada com sucesso' });
 }
 
-module.exports = { listarUsuarios, buscarUsuario, atualizarUsuario, atualizarEmail, atualizarSenha, deletarUsuario };
 async function deletarUsuario(req, res) {
     const { id } = req.params;
     const usuario = await usuarioModel.deletarUsuario(id);
@@ -60,3 +59,5 @@ async function deletarUsuario(req, res) {
         return res.status(404).json({ erro: 'Usuário não encontrado' });
     res.status(204).send();
 }
+
+module.exports = { listarUsuarios, buscarUsuario, atualizarUsuario, atualizarEmail, atualizarSenha, deletarUsuario };

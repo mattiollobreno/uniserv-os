@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Login from './pages/Login';
+import Cadastro from './pages/Cadastro';
 import Dashboard from './pages/Dashboard';
 import Clientes from './pages/Clientes';
 import Chamados from './pages/Chamados';
@@ -21,6 +22,7 @@ export default function App() {
   const [usuario, setUsuario] = useState(null);
   const [carregandoSessao, setCarregandoSessao] = useState(true);
   const [pagina, setPagina] = useState('dashboard');
+  const [telaPublica, setTelaPublica] = useState('login');
 
   useEffect(() => {
     tentarSessaoExistente().then((usuarioLogado) => {
@@ -40,7 +42,11 @@ export default function App() {
   }
 
   if (!usuario) {
-    return <Login onLogin={setUsuario} />;
+    return telaPublica === 'cadastro' ? (
+      <Cadastro onVoltarLogin={() => setTelaPublica('login')} />
+    ) : (
+      <Login onLogin={setUsuario} onIrParaCadastro={() => setTelaPublica('cadastro')} />
+    );
   }
 
   const paginasVisiveis = Object.entries(PAGINAS).filter(

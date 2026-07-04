@@ -51,7 +51,6 @@ async function atualizarCliente(req, res) {
     res.status(200).json(cliente.rows[0]);
 }
 
-module.exports = { cadastrarCliente, listarClientes, buscarCliente, atualizarCliente, deletarCliente };
 async function deletarCliente(req, res) {
     const { id } = req.params;
     const cliente = await clienteModel.deletarCliente(id);
@@ -59,3 +58,5 @@ async function deletarCliente(req, res) {
         return res.status(404).json({ erro: 'Cliente não encontrado' });
     res.status(204).send();
 }
+
+module.exports = { cadastrarCliente, listarClientes, buscarCliente, atualizarCliente, deletarCliente };

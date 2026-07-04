@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { login } from '../services/auth';
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, onIrParaCadastro }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState('');
@@ -56,6 +56,14 @@ export default function Login({ onLogin }) {
 
         <button type="submit" disabled={enviando}>
           {enviando ? 'Entrando...' : 'Entrar'}
+        </button>
+        <button
+          type="button"
+          className="secundario"
+          style={{ marginTop: '0.5rem', width: '100%' }}
+          onClick={onIrParaCadastro}
+        >
+          Criar conta
         </button>
       </form>
     </div>

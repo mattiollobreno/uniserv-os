@@ -12,4 +12,5 @@ function autorizar(...papeis) {
     next();
     };
 }
+
 module.exports = autorizar;
