@@ -32,6 +32,14 @@ async function buscarCliente(req, res) {
     const cliente = await clienteModel.buscarPorId(id);
     if (!cliente)
         return res.status(404).json({ erro: 'Cliente não encontrado' });
+
+    // Rota aberta a qualquer autenticado (ex.: técnico precisa ver o
+    // cliente de um equipamento) — mas o próprio cliente só pode ver o
+    // seu próprio cadastro, nunca o de outra empresa.
+    if (req.usuario.role === 'cliente' && cliente.usuario_id !== req.usuario.id) {
+        return res.status(403).json({ erro: 'Você só pode visualizar o seu próprio cadastro' });
+    }
+
     res.status(200).json(cliente);
 }
 

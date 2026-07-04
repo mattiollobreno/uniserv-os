@@ -44,6 +44,14 @@ async function buscarEquipamento(req, res) {
     if (!equipamento) {
         return res.status(404).json({ erro: 'Equipamento não encontrado' });
     }
+
+    if (req.usuario.role === 'cliente') {
+        const cliente = await clienteModel.buscarPorUsuarioId(req.usuario.id);
+        if (!cliente || equipamento.cliente_id !== cliente.id) {
+            return res.status(403).json({ erro: 'Este equipamento não pertence ao seu cadastro' });
+        }
+    }
+
     res.status(200).json(equipamento);
 }
 
