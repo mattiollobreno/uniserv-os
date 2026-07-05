@@ -34,13 +34,12 @@ Sistema web para gerenciamento de ordens de serviço do **Grupo Uniserv**, empre
 | RF08 | Atribuição de chamados a técnicos | Supervisor |
 | RF09 | Atualização de status do chamado | Técnico, Supervisor |
 | RF10 | Registro de atendimento | Técnico |
-| RF11 | Comunicação interna no chamado | Cliente, Técnico, Supervisor |
-| RF12 | Acompanhamento de chamados | Cliente |
-| RF13 | Consulta e histórico de chamados | Supervisor, Administrador |
-| RF14 | Avaliação de atendimento | Cliente |
-| RF15 | Geração de ordem de serviço (OS) | Sistema |
-| RF16 | Controle de suprimentos | Técnico, Supervisor |
-| RF17 | Notificações automáticas | Todos |
+| RF11 | Acompanhamento de chamados | Cliente |
+| RF12 | Consulta e histórico de chamados | Supervisor, Administrador |
+| RF13 | Avaliação de atendimento | Cliente |
+| RF14 | Geração de ordem de serviço (OS) | Sistema |
+| RF15 | Controle de suprimentos | Técnico, Supervisor |
+| RF16 | Notificações automáticas | Todos |
 
 ---
 
