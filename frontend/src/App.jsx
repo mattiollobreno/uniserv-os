@@ -31,6 +31,17 @@ export default function App() {
     });
   }, []);
 
+  // Atualiza o título da aba conforme a navegação — ajuda quem usa leitor de
+  // tela ou mantém várias abas abertas a saber em qual página está.
+  useEffect(() => {
+    if (!usuario) {
+      document.title = 'Uniserv OS';
+      return;
+    }
+    const tituloPagina = PAGINAS[pagina]?.titulo ?? 'Dashboard';
+    document.title = `${tituloPagina} · Uniserv OS`;
+  }, [pagina, usuario]);
+
   async function handleLogout() {
     await logoutServico();
     setUsuario(null);
@@ -38,7 +49,13 @@ export default function App() {
   }
 
   if (carregandoSessao) {
-    return <p style={{ padding: '2rem' }}>Carregando...</p>;
+    // role="status" garante que leitores de tela anunciem o carregamento,
+    // já que o texto muda sem nenhuma ação explícita do usuário.
+    return (
+      <p role="status" style={{ padding: '2rem' }}>
+        Carregando...
+      </p>
+    );
   }
 
   if (!usuario) {
@@ -57,14 +74,21 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* Skip link: só aparece quando recebe foco via Tab, permitindo que
+          quem navega por teclado pule o menu e vá direto pro conteúdo. */}
+      <a href="#conteudo-principal" className="skip-link">
+        Pular para o conteúdo
+      </a>
+
       <header className="app-header">
         <h1>Uniserv OS</h1>
-        <nav className="app-nav">
+        <nav className="app-nav" aria-label="Navegação principal">
           {paginasVisiveis.map(([chave, { titulo }]) => (
             <button
               key={chave}
               type="button"
               className={chave === pagina ? 'ativo' : ''}
+              aria-current={chave === pagina ? 'page' : undefined}
               onClick={() => setPagina(chave)}
             >
               {titulo}
@@ -78,7 +102,7 @@ export default function App() {
           </button>
         </div>
       </header>
-      <main className="app-main">
+      <main id="conteudo-principal" className="app-main" tabIndex={-1}>
         <PaginaAtual usuario={usuario} />
       </main>
     </div>

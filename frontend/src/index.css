@@ -2,6 +2,31 @@
   box-sizing: border-box;
 }
 
+/* Cabeçalho de tabela ordenável: o <button> ocupa toda a célula e herda a
+   aparência do texto do <th>, mas agora é um elemento nativo focável e
+   operável por teclado (Tab + Enter/Espaço). */
+.botao-ordenar {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.botao-ordenar:hover {
+  background: transparent;
+  text-decoration: underline;
+}
+
+.botao-ordenar:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -409,3 +434,33 @@ tbody tr:hover {
     white-space: normal;
   }
 }
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #2563eb;
+  color: #fff;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 0.4rem 0;
+  z-index: 100;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+

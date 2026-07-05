@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../services/api';
 
 const LABEL_STATUS = {
@@ -37,6 +37,48 @@ function formatarData(valor) {
   return new Date(valor).toLocaleString('pt-BR');
 }
 
+// Move o foco para dentro do modal ao abrir, devolve para o elemento que
+// disparou a abertura ao fechar, e permite fechar com Esc — repetido aqui
+// (em vez de importado) porque cada tela corrige seus próprios modais
+// de forma independente.
+function useFocoAoAbrirModal(aberto, refConteudo, aoFechar) {
+  useEffect(() => {
+    if (!aberto) return;
+
+    const elementoAnterior = document.activeElement;
+    const primeiroFocavel = refConteudo.current?.querySelector(
+      'input, select, textarea, button:not([disabled])'
+    );
+    primeiroFocavel?.focus();
+
+    function aoTeclar(evento) {
+      if (evento.key === 'Escape') {
+        aoFechar();
+      }
+    }
+    document.addEventListener('keydown', aoTeclar);
+
+    return () => {
+      document.removeEventListener('keydown', aoTeclar);
+      elementoAnterior?.focus?.();
+    };
+  }, [aberto]);
+}
+
+// Cabeçalho de coluna ordenável operável por teclado, com aria-sort
+// informando ao leitor de tela a direção da ordenação atual.
+function CabecalhoOrdenavel({ campo, ordenacaoAtual, aoOrdenar, children }) {
+  const ativo = ordenacaoAtual.campo === campo;
+  const ariaSort = ativo ? (ordenacaoAtual.direcao === 'asc' ? 'ascending' : 'descending') : 'none';
+  return (
+    <th aria-sort={ariaSort}>
+      <button type="button" className="botao-ordenar" onClick={() => aoOrdenar(campo)}>
+        {children} {ativo && (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')}
+      </button>
+    </th>
+  );
+}
+
 export default function Chamados({ usuario }) {
   const [chamados, setChamados] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -55,12 +97,14 @@ export default function Chamados({ usuario }) {
   const [formulario, setFormulario] = useState(CHAMADO_VAZIO);
   const [erroFormulario, setErroFormulario] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const refModalNovo = useRef(null);
 
   const [chamadoStatusEditando, setChamadoStatusEditando] = useState(null);
   const [novoStatus, setNovoStatus] = useState('aberto');
   const [observacaoStatus, setObservacaoStatus] = useState('');
   const [erroStatus, setErroStatus] = useState('');
   const [atualizandoStatus, setAtualizandoStatus] = useState(false);
+  const refModalStatus = useRef(null);
 
   // RF10 — preenchido pelo técnico ao finalizar (ações realizadas,
   // horário de início/fim do atendimento).
@@ -68,12 +112,14 @@ export default function Chamados({ usuario }) {
 
   const [chamadoDetalhe, setChamadoDetalhe] = useState(null);
   const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
+  const refModalDetalhe = useRef(null);
 
   const [chamadoAvaliando, setChamadoAvaliando] = useState(null);
   const [notaAvaliacao, setNotaAvaliacao] = useState(5);
   const [comentarioAvaliacao, setComentarioAvaliacao] = useState('');
   const [erroAvaliacao, setErroAvaliacao] = useState('');
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false);
+  const refModalAvaliacao = useRef(null);
 
   // Espelha a autorização do backend (routes/chamadoRoutes.js): as ações só
   // aparecem para quem, de fato, tem permissão de executá-las na API.
@@ -85,6 +131,11 @@ export default function Chamados({ usuario }) {
   const podeAtualizarStatus = ['administrador', 'supervisor', 'tecnico'].includes(usuario.role);
   const podeExcluir = usuario.role === 'administrador';
   const podeAvaliar = usuario.role === 'cliente';
+
+  useFocoAoAbrirModal(modalNovoAberto, refModalNovo, () => setModalNovoAberto(false));
+  useFocoAoAbrirModal(Boolean(chamadoStatusEditando), refModalStatus, () => setChamadoStatusEditando(null));
+  useFocoAoAbrirModal(Boolean(chamadoDetalhe), refModalDetalhe, () => setChamadoDetalhe(null));
+  useFocoAoAbrirModal(Boolean(chamadoAvaliando), refModalAvaliacao, () => setChamadoAvaliando(null));
 
   useEffect(() => {
     carregarListasDeApoio();
@@ -368,13 +419,24 @@ export default function Chamados({ usuario }) {
       </div>
 
       <div className="barra-filtros">
+        <label htmlFor="buscaChamados" className="sr-only">
+          Buscar por descrição, cliente, técnico ou PAT
+        </label>
         <input
+          id="buscaChamados"
           type="search"
           placeholder="Buscar por descrição, cliente, técnico ou PAT..."
           value={filtroTexto}
           onChange={(evento) => setFiltroTexto(evento.target.value)}
         />
-        <select value={filtroStatus} onChange={(evento) => setFiltroStatus(evento.target.value)}>
+        <label htmlFor="filtroStatusChamado" className="sr-only">
+          Filtrar por status
+        </label>
+        <select
+          id="filtroStatusChamado"
+          value={filtroStatus}
+          onChange={(evento) => setFiltroStatus(evento.target.value)}
+        >
           <option value="">Todos os status</option>
           {STATUS_VALIDOS.map((status) => (
             <option key={status} value={status}>
@@ -382,7 +444,14 @@ export default function Chamados({ usuario }) {
             </option>
           ))}
         </select>
-        <select value={filtroTipo} onChange={(evento) => setFiltroTipo(evento.target.value)}>
+        <label htmlFor="filtroTipoChamado" className="sr-only">
+          Filtrar por tipo
+        </label>
+        <select
+          id="filtroTipoChamado"
+          value={filtroTipo}
+          onChange={(evento) => setFiltroTipo(evento.target.value)}
+        >
           <option value="">Todos os tipos</option>
           {Object.entries(LABEL_TIPO).map(([valor, label]) => (
             <option key={valor} value={valor}>
@@ -401,22 +470,22 @@ export default function Chamados({ usuario }) {
           <table>
             <thead>
               <tr>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('data_abertura')}>
-                  Abertura {ordenacao.campo === 'data_abertura' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('cliente_nome')}>
-                  Cliente {ordenacao.campo === 'cliente_nome' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
+                <CabecalhoOrdenavel campo="data_abertura" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Abertura
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="cliente_nome" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Cliente
+                </CabecalhoOrdenavel>
                 <th>Equipamento</th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('tipo')}>
-                  Tipo {ordenacao.campo === 'tipo' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('prioridade')}>
-                  Prioridade {ordenacao.campo === 'prioridade' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('status')}>
-                  Status {ordenacao.campo === 'status' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
+                <CabecalhoOrdenavel campo="tipo" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Tipo
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="prioridade" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Prioridade
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="status" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Status
+                </CabecalhoOrdenavel>
                 <th>Técnico</th>
                 <th>Ações</th>
               </tr>
@@ -435,6 +504,7 @@ export default function Chamados({ usuario }) {
                   <td>
                     {podeAtribuirTecnico ? (
                       <select
+                        aria-label={`Atribuir técnico ao chamado número ${chamado.id}`}
                         value={chamado.tecnico_id ?? ''}
                         onChange={(evento) => handleAtribuirTecnico(chamado, evento.target.value)}
                       >
@@ -487,8 +557,15 @@ export default function Chamados({ usuario }) {
 
       {modalNovoAberto && (
         <div className="sobreposicao-modal">
-          <form className="cartao-modal" onSubmit={handleSalvarNovo}>
-            <h2>Novo chamado</h2>
+          <form
+            className="cartao-modal"
+            onSubmit={handleSalvarNovo}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalNovoChamado"
+            ref={refModalNovo}
+          >
+            <h2 id="tituloModalNovoChamado">Novo chamado</h2>
 
             {podeEscolherClienteETecnico && (
               <>
@@ -597,8 +674,15 @@ export default function Chamados({ usuario }) {
 
       {chamadoStatusEditando && (
         <div className="sobreposicao-modal">
-          <form className="cartao-modal" onSubmit={handleSalvarStatus}>
-            <h2>Atualizar status — chamado #{chamadoStatusEditando.id}</h2>
+          <form
+            className="cartao-modal"
+            onSubmit={handleSalvarStatus}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalStatus"
+            ref={refModalStatus}
+          >
+            <h2 id="tituloModalStatus">Atualizar status — chamado #{chamadoStatusEditando.id}</h2>
 
             <label htmlFor="novoStatus">Novo status</label>
             <select id="novoStatus" value={novoStatus} onChange={(evento) => setNovoStatus(evento.target.value)}>
@@ -668,10 +752,17 @@ export default function Chamados({ usuario }) {
 
       {chamadoDetalhe && (
         <div className="sobreposicao-modal">
-          <div className="cartao-modal">
-            <h2>Chamado #{chamadoDetalhe.id}</h2>
+          <div
+            className="cartao-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalDetalhe"
+            ref={refModalDetalhe}
+            tabIndex={-1}
+          >
+            <h2 id="tituloModalDetalhe">Chamado #{chamadoDetalhe.id}</h2>
             {carregandoDetalhe ? (
-              <p>Carregando...</p>
+              <p role="status">Carregando...</p>
             ) : (
               <>
                 <p>
@@ -738,8 +829,15 @@ export default function Chamados({ usuario }) {
 
       {chamadoAvaliando && (
         <div className="sobreposicao-modal">
-          <form className="cartao-modal" onSubmit={handleEnviarAvaliacao}>
-            <h2>Avaliar atendimento — chamado #{chamadoAvaliando.id}</h2>
+          <form
+            className="cartao-modal"
+            onSubmit={handleEnviarAvaliacao}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalAvaliacao"
+            ref={refModalAvaliacao}
+          >
+            <h2 id="tituloModalAvaliacao">Avaliar atendimento — chamado #{chamadoAvaliando.id}</h2>
 
             <label htmlFor="notaAvaliacao">Nota (1 a 5)</label>
             <select id="notaAvaliacao" value={notaAvaliacao} onChange={(evento) => setNotaAvaliacao(evento.target.value)}>

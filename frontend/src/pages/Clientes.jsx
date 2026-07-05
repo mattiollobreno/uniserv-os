@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../services/api';
 
 const CAMPOS_FORMULARIO = [
@@ -19,6 +19,48 @@ const CLIENTE_VAZIO = {
   contato_nome: '',
 };
 
+// Move o foco para dentro do modal ao abrir, devolve para o elemento que
+// disparou a abertura ao fechar, e permite fechar com Esc — sem isso,
+// quem navega por teclado ou leitor de tela fica "preso" fora do contexto
+// do diálogo ou perde a referência de onde estava ao fechá-lo.
+function useFocoAoAbrirModal(aberto, refConteudo, aoFechar) {
+  useEffect(() => {
+    if (!aberto) return;
+
+    const elementoAnterior = document.activeElement;
+    const primeiroFocavel = refConteudo.current?.querySelector(
+      'input, select, textarea, button:not([disabled])'
+    );
+    primeiroFocavel?.focus();
+
+    function aoTeclar(evento) {
+      if (evento.key === 'Escape') {
+        aoFechar();
+      }
+    }
+    document.addEventListener('keydown', aoTeclar);
+
+    return () => {
+      document.removeEventListener('keydown', aoTeclar);
+      elementoAnterior?.focus?.();
+    };
+  }, [aberto]);
+}
+
+// Cabeçalho de coluna ordenável operável por teclado (Tab + Enter/Espaço),
+// com aria-sort informando ao leitor de tela a direção da ordenação atual.
+function CabecalhoOrdenavel({ campo, ordenacaoAtual, aoOrdenar, children }) {
+  const ativo = ordenacaoAtual.campo === campo;
+  const ariaSort = ativo ? (ordenacaoAtual.direcao === 'asc' ? 'ascending' : 'descending') : 'none';
+  return (
+    <th aria-sort={ariaSort}>
+      <button type="button" className="botao-ordenar" onClick={() => aoOrdenar(campo)}>
+        {children} {ativo && (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')}
+      </button>
+    </th>
+  );
+}
+
 export default function Clientes({ usuario }) {
   const [clientes, setClientes] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -32,6 +74,7 @@ export default function Clientes({ usuario }) {
   const [formulario, setFormulario] = useState(CLIENTE_VAZIO);
   const [erroFormulario, setErroFormulario] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const refModal = useRef(null);
 
   const podeExcluir = usuario.role === 'administrador';
   const podeCriarAcesso = usuario.role === 'administrador' || usuario.role === 'supervisor';
@@ -40,6 +83,10 @@ export default function Clientes({ usuario }) {
   const [formAcesso, setFormAcesso] = useState({ email: '', senha: '' });
   const [erroAcesso, setErroAcesso] = useState('');
   const [salvandoAcesso, setSalvandoAcesso] = useState(false);
+  const refModalAcesso = useRef(null);
+
+  useFocoAoAbrirModal(modalAberto, refModal, () => setModalAberto(false));
+  useFocoAoAbrirModal(Boolean(clienteAcesso), refModalAcesso, () => setClienteAcesso(null));
 
   useEffect(() => {
     carregarClientes();
@@ -197,7 +244,11 @@ export default function Clientes({ usuario }) {
       </div>
 
       <div className="barra-filtros">
+        <label htmlFor="buscaClientes" className="sr-only">
+          Buscar por razão social, CPF/CNPJ ou e-mail
+        </label>
         <input
+          id="buscaClientes"
           type="search"
           placeholder="Buscar por razão social, CPF/CNPJ ou e-mail..."
           value={filtro}
@@ -214,12 +265,12 @@ export default function Clientes({ usuario }) {
           <table>
             <thead>
               <tr>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('razao_social')}>
-                  Razão social {ordenacao.campo === 'razao_social' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('cpf_cnpj')}>
-                  CPF/CNPJ {ordenacao.campo === 'cpf_cnpj' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
+                <CabecalhoOrdenavel campo="razao_social" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Razão social
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="cpf_cnpj" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  CPF/CNPJ
+                </CabecalhoOrdenavel>
                 <th>Telefone</th>
                 <th>E-mail</th>
                 <th>Contato</th>
@@ -275,8 +326,12 @@ export default function Clientes({ usuario }) {
           <form
             className="cartao-modal"
             onSubmit={handleSalvar}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalCliente"
+            ref={refModal}
           >
-            <h2>{clienteEditando ? 'Editar cliente' : 'Novo cliente'}</h2>
+            <h2 id="tituloModalCliente">{clienteEditando ? 'Editar cliente' : 'Novo cliente'}</h2>
 
             {CAMPOS_FORMULARIO.map((campo) => (
               <div key={campo.nome}>
@@ -309,8 +364,15 @@ export default function Clientes({ usuario }) {
 
       {clienteAcesso && (
         <div className="sobreposicao-modal">
-          <form className="cartao-modal" onSubmit={handleSalvarAcesso}>
-            <h2>Criar acesso — {clienteAcesso.razao_social}</h2>
+          <form
+            className="cartao-modal"
+            onSubmit={handleSalvarAcesso}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalAcesso"
+            ref={refModalAcesso}
+          >
+            <h2 id="tituloModalAcesso">Criar acesso — {clienteAcesso.razao_social}</h2>
             <p>
               O cliente poderá logar com este e-mail e senha para abrir chamados,
               acompanhar o andamento e avaliar o atendimento.

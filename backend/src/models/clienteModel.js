@@ -23,8 +23,11 @@ async function buscarPorId(id) {
 // Usado para resolver "qual cliente é esse usuário logado" quando o perfil
 // é 'cliente' (abertura/listagem de chamados e equipamentos restrita ao
 // próprio cliente).
-async function buscarPorUsuarioId(usuarioId) {
-    const result = await db.query('SELECT * FROM cliente WHERE usuario_id = $1', [usuarioId]);
+async function buscarPorUsuarioId(usuario_id) {
+    const result = await db.query(
+        'SELECT * FROM cliente WHERE usuario_id = $1',
+        [usuario_id]
+    );
     return result.rows[0] || null;
 }
 

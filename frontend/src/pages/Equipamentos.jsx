@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../services/api';
 
 const LABEL_STATUS = {
@@ -18,6 +18,46 @@ const EQUIPAMENTO_VAZIO = {
   cliente_id: '',
 };
 
+// Move o foco para dentro do modal ao abrir, devolve para o elemento que
+// disparou a abertura ao fechar, e permite fechar com Esc.
+function useFocoAoAbrirModal(aberto, refConteudo, aoFechar) {
+  useEffect(() => {
+    if (!aberto) return;
+
+    const elementoAnterior = document.activeElement;
+    const primeiroFocavel = refConteudo.current?.querySelector(
+      'input, select, textarea, button:not([disabled])'
+    );
+    primeiroFocavel?.focus();
+
+    function aoTeclar(evento) {
+      if (evento.key === 'Escape') {
+        aoFechar();
+      }
+    }
+    document.addEventListener('keydown', aoTeclar);
+
+    return () => {
+      document.removeEventListener('keydown', aoTeclar);
+      elementoAnterior?.focus?.();
+    };
+  }, [aberto]);
+}
+
+// Cabeçalho de coluna ordenável operável por teclado, com aria-sort
+// informando ao leitor de tela a direção da ordenação atual.
+function CabecalhoOrdenavel({ campo, ordenacaoAtual, aoOrdenar, children }) {
+  const ativo = ordenacaoAtual.campo === campo;
+  const ariaSort = ativo ? (ordenacaoAtual.direcao === 'asc' ? 'ascending' : 'descending') : 'none';
+  return (
+    <th aria-sort={ariaSort}>
+      <button type="button" className="botao-ordenar" onClick={() => aoOrdenar(campo)}>
+        {children} {ativo && (ordenacaoAtual.direcao === 'asc' ? '▲' : '▼')}
+      </button>
+    </th>
+  );
+}
+
 export default function Equipamentos({ usuario }) {
   const [equipamentos, setEquipamentos] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -33,11 +73,14 @@ export default function Equipamentos({ usuario }) {
   const [formulario, setFormulario] = useState(EQUIPAMENTO_VAZIO);
   const [erroFormulario, setErroFormulario] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const refModal = useRef(null);
 
   // Espelha routes/equipamentoRoutes.js: técnico também pode cadastrar e
   // editar equipamento, mas exclusão é restrita a administrador.
   const podeGerenciar = ['administrador', 'supervisor', 'tecnico'].includes(usuario.role);
   const podeExcluir = usuario.role === 'administrador';
+
+  useFocoAoAbrirModal(modalAberto, refModal, () => setModalAberto(false));
 
   useEffect(() => {
     carregarEquipamentos();
@@ -175,13 +218,24 @@ export default function Equipamentos({ usuario }) {
       </div>
 
       <div className="barra-filtros">
+        <label htmlFor="buscaEquipamentos" className="sr-only">
+          Buscar por PAT, modelo, marca ou cliente
+        </label>
         <input
+          id="buscaEquipamentos"
           type="search"
           placeholder="Buscar por PAT, modelo, marca ou cliente..."
           value={filtroTexto}
           onChange={(evento) => setFiltroTexto(evento.target.value)}
         />
-        <select value={filtroStatus} onChange={(evento) => setFiltroStatus(evento.target.value)}>
+        <label htmlFor="filtroStatusEquipamento" className="sr-only">
+          Filtrar por status
+        </label>
+        <select
+          id="filtroStatusEquipamento"
+          value={filtroStatus}
+          onChange={(evento) => setFiltroStatus(evento.target.value)}
+        >
           <option value="">Todos os status</option>
           {STATUS_VALIDOS.map((status) => (
             <option key={status} value={status}>
@@ -200,20 +254,20 @@ export default function Equipamentos({ usuario }) {
           <table>
             <thead>
               <tr>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('pat')}>
-                  PAT {ordenacao.campo === 'pat' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('modelo')}>
-                  Modelo {ordenacao.campo === 'modelo' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
+                <CabecalhoOrdenavel campo="pat" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  PAT
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="modelo" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Modelo
+                </CabecalhoOrdenavel>
                 <th>Marca</th>
                 <th>Localização</th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('cliente_nome')}>
-                  Cliente {ordenacao.campo === 'cliente_nome' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
-                <th className="ordenavel" onClick={() => alternarOrdenacao('status')}>
-                  Status {ordenacao.campo === 'status' && (ordenacao.direcao === 'asc' ? '▲' : '▼')}
-                </th>
+                <CabecalhoOrdenavel campo="cliente_nome" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Cliente
+                </CabecalhoOrdenavel>
+                <CabecalhoOrdenavel campo="status" ordenacaoAtual={ordenacao} aoOrdenar={alternarOrdenacao}>
+                  Status
+                </CabecalhoOrdenavel>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -258,8 +312,17 @@ export default function Equipamentos({ usuario }) {
 
       {modalAberto && (
         <div className="sobreposicao-modal">
-          <form className="cartao-modal" onSubmit={handleSalvar}>
-            <h2>{equipamentoEditando ? 'Editar equipamento' : 'Novo equipamento'}</h2>
+          <form
+            className="cartao-modal"
+            onSubmit={handleSalvar}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tituloModalEquipamento"
+            ref={refModal}
+          >
+            <h2 id="tituloModalEquipamento">
+              {equipamentoEditando ? 'Editar equipamento' : 'Novo equipamento'}
+            </h2>
 
             <label htmlFor="pat">Número de patrimônio (PAT)</label>
             <input
