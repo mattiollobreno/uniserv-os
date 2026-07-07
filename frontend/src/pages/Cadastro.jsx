@@ -6,6 +6,7 @@ import { apiFetch } from '../services/api';
 const PERFIS = [
   { valor: 'tecnico', label: 'Técnico' },
   { valor: 'supervisor', label: 'Supervisor' },
+  { valor: 'cliente', label: 'Cliente' },
 ];
 
 export default function Cadastro({ onVoltarLogin }) {
@@ -13,6 +14,7 @@ export default function Cadastro({ onVoltarLogin }) {
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [perfil, setPerfil] = useState('tecnico');
+  const [cpfCnpj, setCpfCnpj] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [erro, setErro] = useState('');
@@ -32,7 +34,17 @@ export default function Cadastro({ onVoltarLogin }) {
     try {
       await apiFetch('/auth/cadastrar', {
         method: 'POST',
-        body: { nome_completo: nomeCompleto, email, telefone, senha, perfil },
+        body: {
+          nome_completo: nomeCompleto,
+          email,
+          telefone,
+          senha,
+          perfil,
+          // RF05: quem se cadastra ainda não está autenticado, então não dá
+          // pra escolher a empresa numa lista (rota protegida) — em vez
+          // disso, o backend resolve o cliente pelo CNPJ já cadastrado.
+          cpf_cnpj: perfil === 'cliente' ? cpfCnpj : undefined,
+        },
       });
       setSucesso(true);
     } catch (err) {
@@ -97,6 +109,20 @@ export default function Cadastro({ onVoltarLogin }) {
             </option>
           ))}
         </select>
+
+        {perfil === 'cliente' && (
+          <>
+            <label htmlFor="cpfCnpj">CPF/CNPJ da empresa</label>
+            <input
+              id="cpfCnpj"
+              type="text"
+              value={cpfCnpj}
+              onChange={(evento) => setCpfCnpj(evento.target.value)}
+              placeholder="Igual ao cadastrado pela Uniserv"
+              required
+            />
+          </>
+        )}
 
         <label htmlFor="senha">Senha</label>
         <input

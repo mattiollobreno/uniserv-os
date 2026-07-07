@@ -1,4 +1,5 @@
 const db = require('../database');
+const ordemServicoModel = require('./ordemServicoModel');
 
 async function criarChamado(dados) {
     return await db.query(
@@ -60,7 +61,9 @@ async function buscarPorId(id) {
             at.observacoes AS atendimento_observacoes,
             av.id AS avaliacao_id,
             av.nota AS avaliacao_nota,
-            av.comentario AS avaliacao_comentario
+            av.comentario AS avaliacao_comentario,
+            os.numero_os AS ordem_servico_numero,
+            os.data_geracao AS ordem_servico_data
         FROM chamado c
         LEFT JOIN cliente cl ON cl.id = c.cliente_id
         LEFT JOIN tecnico t ON t.id = c.tecnico_id
@@ -68,6 +71,7 @@ async function buscarPorId(id) {
         LEFT JOIN equipamento e ON e.id = c.equipamento_id
         LEFT JOIN atendimento at ON at.chamado_id = c.id
         LEFT JOIN avaliacao av ON av.chamado_id = c.id
+        LEFT JOIN ordem_servico os ON os.chamado_id = c.id
         WHERE c.id = $1`,
         [id]
     );
@@ -95,6 +99,17 @@ async function atualizarStatus(id, status, alteradoPor, observacao) {
                 VALUES ($1, $2, $3, $4)`,
                 [id, status, alteradoPor ?? null, observacao ?? null]
             );
+
+            // RF16 — ao finalizar, gera a ordem de serviço automaticamente,
+            // na mesma transação (se já existir um atendimento registrado,
+            // ela já sai vinculada a ele).
+            if (status === 'finalizado') {
+                const atendimento = await client.query(
+                    'SELECT id FROM atendimento WHERE chamado_id = $1',
+                    [id]
+                );
+                await ordemServicoModel.gerarOrdemServico(client, id, atendimento.rows[0]?.id ?? null);
+            }
         }
 
         await client.query('COMMIT');

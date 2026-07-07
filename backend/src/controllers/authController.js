@@ -20,7 +20,7 @@ function gerarAccessToken(usuario) {
 
 
 async function cadastrarUsuario(req, res) {
-    const { nome_completo, email, telefone, senha, perfil, cliente_id } = req.body;
+    const { nome_completo, email, telefone, senha, perfil, cpf_cnpj } = req.body;
 
     if (!nome_completo || !email || !senha)
         return res.status(400).json({ erro: 'Campos obrigatórios ausentes' });
@@ -31,17 +31,19 @@ async function cadastrarUsuario(req, res) {
     if (await usuarioModel.buscarPorEmail(email))
         return res.status(409).json({ erro: 'E-mail já cadastrado' });
 
-    // RF01: usuário do tipo cliente precisa estar vinculado a um cliente já
-    // cadastrado no sistema — validamos isso ANTES de criar o usuário, para
-    // não deixar login "órfão" (sem cliente) se a vinculação falhar depois.
+    // RF01/RF05: usuário do tipo cliente precisa estar vinculado a um cliente
+    // (empresa) já cadastrado no sistema. Pedimos o CPF/CNPJ em vez de um
+    // cliente_id direto: quem se autocadastra não está autenticado ainda,
+    // então não tem como enxergar a lista de clientes (rota protegida) —
+    // mas já sabe o CNPJ da própria empresa.
     let cliente = null;
     if (perfil === 'cliente') {
-        if (!cliente_id)
-            return res.status(400).json({ erro: 'cliente_id é obrigatório para cadastro de cliente' });
+        if (!cpf_cnpj)
+            return res.status(400).json({ erro: 'cpf_cnpj é obrigatório para cadastro de cliente' });
 
-        cliente = await clienteModel.buscarPorId(cliente_id);
+        cliente = await clienteModel.buscarPorCpfCnpj(cpf_cnpj);
         if (!cliente)
-            return res.status(404).json({ erro: 'Cliente não encontrado' });
+            return res.status(404).json({ erro: 'Nenhuma empresa cadastrada com esse CPF/CNPJ. Fale com a Uniserv para cadastrar sua empresa antes de criar o acesso.' });
         if (cliente.usuario_id)
             return res.status(409).json({ erro: 'Este cliente já possui um acesso vinculado' });
     }
@@ -65,7 +67,7 @@ async function cadastrarUsuario(req, res) {
     }
 
     if (perfil === 'cliente') {
-        await clienteModel.vincularUsuario(cliente_id, usuario.rows[0].id);
+        await clienteModel.vincularUsuario(cliente.id, usuario.rows[0].id);
     }
 
     res.status(201).json({ id: usuario.rows[0].id, nome: usuario.rows[0].nome_completo, email: usuario.rows[0].email });

@@ -212,7 +212,10 @@ export default function Clientes({ usuario }) {
           email: formAcesso.email,
           senha: formAcesso.senha,
           perfil: 'cliente',
-          cliente_id: clienteAcesso.id,
+          // O backend resolve o cliente pelo CNPJ (mesmo caminho usado no
+          // autocadastro público) — não existe mais um "cliente_id" cru
+          // aceito pela rota.
+          cpf_cnpj: clienteAcesso.cpf_cnpj,
         },
       });
       setClienteAcesso(null);

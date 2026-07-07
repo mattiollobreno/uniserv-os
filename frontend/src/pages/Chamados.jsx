@@ -305,13 +305,9 @@ export default function Chamados({ usuario }) {
     setErroStatus('');
     setAtualizandoStatus(true);
     try {
-      await apiFetch(`/chamados/${chamadoStatusEditando.id}/status`, {
-        method: 'PATCH',
-        body: { status: novoStatus, observacao: observacaoStatus || undefined },
-      });
-
-      // RF10 — ao finalizar, se o técnico preencheu algo do atendimento,
-      // registra também (ações realizadas / horário de início e fim).
+      // RF10 — o registro de atendimento precisa ser salvo ANTES de marcar
+      // como finalizado: é nesse momento que o backend gera a OS (RF16), e
+      // ela já sai vinculada ao atendimento se ele existir a tempo.
       const temDadosAtendimento = atendimento.descricao_acoes || atendimento.data_inicio || atendimento.data_fim;
       if (novoStatus === 'finalizado' && temDadosAtendimento) {
         await apiFetch(`/chamados/${chamadoStatusEditando.id}/atendimento`, {
@@ -323,6 +319,11 @@ export default function Chamados({ usuario }) {
           },
         });
       }
+
+      await apiFetch(`/chamados/${chamadoStatusEditando.id}/status`, {
+        method: 'PATCH',
+        body: { status: novoStatus, observacao: observacaoStatus || undefined },
+      });
 
       setChamadoStatusEditando(null);
       await carregarChamados();
@@ -797,6 +798,20 @@ export default function Chamados({ usuario }) {
                       <strong>Nota:</strong> {chamadoDetalhe.avaliacao_nota} / 5
                       {chamadoDetalhe.avaliacao_comentario ? ` — "${chamadoDetalhe.avaliacao_comentario}"` : ''}
                     </p>
+                  </>
+                )}
+
+                {chamadoDetalhe.ordem_servico_numero && (
+                  <>
+                    <h3>Ordem de serviço</h3>
+                    <p>
+                      <strong>Nº:</strong> {chamadoDetalhe.ordem_servico_numero}
+                      {' · '}
+                      <strong>Gerada em:</strong> {formatarData(chamadoDetalhe.ordem_servico_data)}
+                    </p>
+                    <button type="button" className="secundario" onClick={() => window.print()}>
+                      Imprimir OS
+                    </button>
                   </>
                 )}
 
